@@ -13,6 +13,7 @@
         ".": "./index.js",
         "./geometry": "./geometry/index.js",
         "./math": "./math/index.js",
-        "./analysis": "./analysis/index.js"
+        "./analysis": "./analysis/index.js",
+        "./package.json": "./package.json"
     }
 }
