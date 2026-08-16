@@ -14,6 +14,7 @@
         "./geometry": "./geometry/index.js",
         "./math": "./math/index.js",
         "./analysis": "./analysis/index.js",
+        "./svg": "./svg/index.js",
         "./package.json": "./package.json"
     }
 }

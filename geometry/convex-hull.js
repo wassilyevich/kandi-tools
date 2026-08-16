@@ -1,4 +1,8 @@
 /**
+ * @typedef {{ x: number, y: number }} Point2
+ */
+
+/**
  * Finds the convex hull of a set of 2D points using a specified algorithm.
  * @param {Array<{x: number, y: number}>} points - Input points
  * @param {string} algorithm - Algorithm to use ('graham')
@@ -74,6 +78,23 @@ export function grahamScan(points) {
         hull: stack,
         hullCount: stack.length,
     };
+}
+
+/**
+ * Checks if a point lies in a provided (convex) hull
+ * @param {Point2} point - Point to check if it lies inside the hull
+ * @param {Array<Point2>} hull - Convex hull to check point against
+ * @returns {boolean} Boolean that tells whether or not the point lies inside the provided hull
+ */
+export function isInsideHull(point, hull) {
+    for (let i = 0; i < hull.length; i++) {
+        const a = hull[i];
+        const b = hull[(i + 1) % hull.length];
+        const cross =
+            (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);
+        if (cross < 0) return false;
+    }
+    return true;
 }
 
 // Internal helper functions

@@ -37,10 +37,11 @@ export function addLayer(svg, layerName) {
 /**
  * Adds a set of points as a sequence (polyline) to an SVG object layer
  *@param {Layer} layer - reference to an SVG object layer
- *@param {Array.<Point2>} - array of 2D points to add to the layer
+ *@param {Array.<Point2>} points - array of 2D points to add to the layer
+ *@param {boolean} closed - boolean to decide whether polyline is closed or not
  */
-export function addPolyline(layer, points) {
-    layer.polylines.push(points);
+export function addPolyline(layer, points, closed = false) {
+    layer.polylines.push({ points, closed });
 }
 
 /**
@@ -78,11 +79,10 @@ function parseLayer(layer) {
 }
 
 function parsePolyline(polyline) {
-    let parsedPolyline = "d=";
-    parsedPolyline += `"M ${polyline[0].x},${polyline[0].y} `;
-    for (let i = 1; i < polyline.length; i++) {
-        parsedPolyline += `L ${polyline[i].x},${polyline[i].y} `;
+    let d = `M ${polyline.points[0].x},${polyline.points[0].y} `;
+    for (let i = 1; i < polyline.points.length; i++) {
+        d += `L ${polyline.points[i].x},${polyline.points[i].y} `;
     }
-    parsedPolyline += '"';
-    return parsedPolyline;
+    if (polyline.closed) d += "Z";
+    return `d="${d}"`;
 }
