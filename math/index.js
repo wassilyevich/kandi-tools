@@ -64,6 +64,8 @@ export function penal(value, power, min = -1, max = 1) {
  * @returns {number} angle between p1 and p2 with respect to the x-axis
  */
 export function angleBetween(p1, p2, range = true) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
     if (range) {
         return (Math.atan2(dy, dx) + 2 * Math.PI) % (2 * Math.PI);
     } else {

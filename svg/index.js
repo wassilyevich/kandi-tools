@@ -117,6 +117,20 @@ export function addArc(
 }
 
 /**
+ * Adds a dot to an SVG object layer based on drawing a very short line
+ * @param {Layer} layer - reference to an SVG layer
+ * @param {number} cx - x position of the dot center
+ * @param {number} cy - y position of the dot center
+ * @param {number} [lineLength] - length of the short line to be drawn (horizontally); best to use smaller then penwidth
+ */
+export function addDot(layer, cx, cy, lineLength = 0.01) {
+    addPolyline(layer, [
+        { x: cx - lineLength / 2, y: cy },
+        { x: cx + lineLength / 2, y: cy },
+    ]);
+}
+
+/**
  * Parses the SVG object and its content to an SVG string
  * @param {SVGDoc} - SVG object to parse to a string
  */
