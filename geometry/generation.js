@@ -73,3 +73,92 @@ export function poissonDisk(width, height, minDist, maxAttempts = 30, random) {
     }
     return result;
 }
+
+/**
+ * Rotates a 2D point around the origin by a given angle
+ * @param {Point2} point - point to rotate
+ * @param {number} angle - angle in radians
+ * @returns {Point2} rotated point
+ */
+function rotatePoint(point, angle) {
+    return {
+        x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
+        y: point.x * Math.sin(angle) + point.y * Math.cos(angle),
+    };
+}
+
+/**
+ * Rotates all points of a polygon around the origin by a given angle
+ * @param {Array<Point2>} points - polygon vertices to rotate
+ * @param {number} angle - angle in radians
+ * @returns {Array<Point2>} rotated polygon vertices
+ */
+function rotatePolygon(points, angle) {
+    return points.map((point) => rotatePoint(point, angle));
+}
+
+/**
+ * Finds all x intersections of a horizontal scanline at height y with a polygon
+ * @param {Array<Point2>} polygon - polygon to intersect
+ * @param {number} y - height of the horizontal scanline
+ * @returns {Array<number>} sorted array of x intersection values
+ */
+function findIntersections(polygon, y) {
+    const polygonClosed = [...polygon, polygon[0]];
+    const intersections = [];
+    for (let i = 0; i < polygonClosed.length - 1; i++) {
+        const p1 = polygonClosed[i];
+        const p2 = polygonClosed[i + 1];
+        if ((p1.y <= y && p2.y > y) || (p2.y <= y && p1.y > y)) {
+            const t = (y - p1.y) / (p2.y - p1.y);
+            const x = p1.x + t * (p2.x - p1.x);
+            intersections.push(x);
+        }
+    }
+    return intersections.sort((a, b) => a - b);
+}
+
+/**
+ * Generates a hatch fill as line segments for a provided polygon.
+ * Handles concave polygons and uses boustrophedon ordering to minimize pen travel.
+ * @param {Array<Point2>} polygon - closed polygon to hatch
+ * @param {number} angle - angle of the hatch lines in radians
+ * @param {number} spacing - spacing between hatch lines in sketch units
+ * @returns {Array<Array<Point2>>} array of line segments, each segment is [start, end]
+ */
+export function hatchFill(polygon, angle, spacing) {
+    const lineSegments = [];
+    const rP = rotatePolygon(polygon, -angle);
+    const ys = rP.map((p) => p.y);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const nSteps = Math.floor((maxY - minY) / spacing);
+
+    for (let i = 0; i <= nSteps; i++) {
+        const y = minY + i * spacing;
+        const intersections = findIntersections(rP, y);
+
+        if (intersections.length % 2 !== 0) continue;
+
+        if (i % 2 === 0) {
+            // Left to right
+            for (let j = 0; j < intersections.length; j += 2) {
+                lineSegments.push([
+                    { x: intersections[j], y },
+                    { x: intersections[j + 1], y },
+                ]);
+            }
+        } else {
+            // Right to left
+            for (let j = intersections.length - 1; j > 0; j -= 2) {
+                lineSegments.push([
+                    { x: intersections[j], y },
+                    { x: intersections[j - 1], y },
+                ]);
+            }
+        }
+    }
+
+    // Rotate segments back to original angle
+    return lineSegments.map((segment) => rotatePolygon(segment, angle));
+}

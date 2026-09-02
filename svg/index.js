@@ -148,6 +148,8 @@ export function toString(svg) {
     return SVGString;
 }
 
+// UTILITY FUNCTIONS
+
 function parseLayer(layer) {
     let layerString = "";
     const layerName = layer.name;
