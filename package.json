@@ -17,6 +17,7 @@
         "./svg": "./svg/index.js",
         "./images": "./images/index.js",
         "./random": "./random/index.js",
+        "./color": "./color/index.js",
         "./package.json": "./package.json"
     }
 }
