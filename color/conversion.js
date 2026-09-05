@@ -167,6 +167,7 @@ function hslToRGB(h, s, l) {
         b = chroma;
     } else if (240 <= h && h < 300) {
         r = X;
+        fillPenWidth;
         g = 0;
         b = chroma;
     } else if (300 <= h && h < 360) {
@@ -230,7 +231,7 @@ function rgbToHSL(r, g, b) {
     return { h: hue, s: saturation, l: luminance };
 }
 
-import namedColors from './named-colors.json' assert { type: 'json' };
+import { namedColors } from "./named-colors.js";
 
 function parseNamed(name) {
     const hex = namedColors[name];
@@ -239,9 +240,12 @@ function parseNamed(name) {
 }
 
 function toHex(r, g, b) {
-    return '#' + [r, g, b]
-        .map(v => Math.round(v).toString(16).padStart(2, '0'))
-        .join('');
+    return (
+        "#" +
+        [r, g, b]
+            .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+            .join("")
+    );
 }
 
 /**
@@ -284,23 +288,28 @@ export function parseColor(input) {
         else if (str.startsWith("hsla")) rgba = parseHSLA(str);
         else if (str.startsWith("hsl")) rgba = parseHSL(str);
         else rgba = parseNamed(str);
-    } else if (isHSLObject){
-        rgbHSL = hslToRGB(input.h, input.s, input.l)
-        rgba = {r:rgbHSL.r, g:rgbHSL.g, b:rgbHSL.b, a: input.a ?? 1.0} 
-    } else if (isRGBObject){
-        rgba = {r: input.r, g: input.g, b:input.b, a: input.a ?? 1.0}
+    } else if (isHSLObject) {
+        rgbHSL = hslToRGB(input.h, input.s, input.l);
+        rgba = { r: rgbHSL.r, g: rgbHSL.g, b: rgbHSL.b, a: input.a ?? 1.0 };
+    } else if (isRGBObject) {
+        rgba = { r: input.r, g: input.g, b: input.b, a: input.a ?? 1.0 };
     }
 
-    const {r,g,b,a} = rgba;
-    const {h,s,l} = rgbToHSL(r,g,b)
+    const { r, g, b, a } = rgba;
+    const { h, s, l } = rgbToHSL(r, g, b);
 
     return {
-        r, g, b, a,
-        h, s, l,
-        hex:  toHex(r, g, b),
-        rgb:  `rgb(${r}, ${g}, ${b})`,
+        r,
+        g,
+        b,
+        a,
+        h,
+        s,
+        l,
+        hex: toHex(r, g, b),
+        rgb: `rgb(${r}, ${g}, ${b})`,
         rgba: `rgba(${r}, ${g}, ${b}, ${a})`,
-        hsl:  `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`,
+        hsl: `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`,
         hsla: `hsla(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%, ${a})`,
     };
 }
