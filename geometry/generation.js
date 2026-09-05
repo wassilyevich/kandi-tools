@@ -1,4 +1,4 @@
-import { isInsidePolygon } from "./polygons";
+import { isInsidePolygon } from "./polygons.js";
 
 /**
  * @typedef {{ x: number, y: number }} Point2
