@@ -1,3 +1,5 @@
+import { isInsidePolygon } from "./polygons";
+
 /**
  * @typedef {{ x: number, y: number }} Point2
  */
@@ -9,9 +11,17 @@
  * @param{number} minDist - minimum distance to spawn a new point with respect to the current point
  * @param{number} [maxAttempts=30] - maximum number of attempts to try and generate a new point
  * @param{Function} random - a callback function called as random() that generates random values between [0-1]
+ * @param{Point2} [origin={x:0, y:0}] - optional origin parameter for correct offsetting
  * @returns{Array<Point2>} array of the generated points
  */
-export function poissonDisk(width, height, minDist, maxAttempts = 30, random) {
+export function poissonDisk(
+    width,
+    height,
+    minDist,
+    maxAttempts = 30,
+    random,
+    origin = { x: 0, y: 0 },
+) {
     const cellSize = minDist / Math.sqrt(2);
     const cols = Math.ceil(width / cellSize);
     const rows = Math.ceil(height / cellSize);
@@ -64,7 +74,7 @@ export function poissonDisk(width, height, minDist, maxAttempts = 30, random) {
             if (!checker) {
                 grid[col][row] = { x, y };
                 activeGrid.push({ x, y });
-                result.push({ x, y });
+                result.push({ x: x + origin.x, y: y + origin.y });
                 found = true;
                 break;
             }
@@ -72,6 +82,28 @@ export function poissonDisk(width, height, minDist, maxAttempts = 30, random) {
         if (!found) activeGrid.splice(index, 1);
     }
     return result;
+}
+
+/**
+ * Poisson disk sampling algorithm for 2D point generation inside a polygon
+ * @param{Array<Point2>} polygon - polygon to spawn points in
+ * @param{number} minDist - minimum distance to spawn a new point with respect to the current point
+ * @param{number} [maxAttempts=30] - maximum number of attempts to try and generate a new point
+ * @param{Function} random - a callback function called as random() that generates random values between [0-1]
+ * @returns{Array<Point2>} array of the generated points
+ */
+export function poissonDiskPolygon(polygon, minDist, maxAttempts, random) {
+    const xs = polygon.map((p) => p.x);
+    const ys = polygon.map((p) => p.y);
+    const minX = Math.min(...xs),
+        maxX = Math.max(...xs);
+    const minY = Math.min(...ys),
+        maxY = Math.max(...ys);
+
+    return poissonDisk(maxX - minX, maxY - minY, minDist, maxAttempts, random, {
+        x: minX,
+        y: minY,
+    }).filter((p) => isInsidePolygon(p, polygon));
 }
 
 /**
