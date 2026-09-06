@@ -7,6 +7,10 @@
  */
 
 /**
+ * @typedef {{c: number, m: number, y: number, k: number}} ColorCMYK
+ */
+
+/**
  * @typedef {{ h: number, s: number, l: number }} ColorHSL
  */
 
@@ -212,7 +216,7 @@ function rgbToHSL(r, g, b) {
     const delta = max - min;
     const luminance = (max + min) / 2;
     let saturation = 0;
-    if (delt !== 0) {
+    if (delta !== 0) {
         saturation = delta / (1 - Math.abs(2 * luminance - 1));
     }
     let hue = 0;
@@ -312,4 +316,39 @@ export function parseColor(input) {
         hsl: `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`,
         hsla: `hsla(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%, ${a})`,
     };
+}
+
+/**
+ * Converts an RGB color to the equivalent CMYK color values
+ * @param{number} r - red value
+ * @param{number} g - green value
+ * @param{number} b - blue value
+ * @returns{ColorCMYK} CMYK color values
+ */
+export function rgbToCMYK(r, g, b) {
+    //Normalize
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const k = 1 - Math.max(r, g, b);
+    if (k === 1) return { c: 0, m: 0, y: 0, k: 1 };
+    const c = (1 - r - k) / (1 - k);
+    const m = (1 - g - k) / (1 - k);
+    const y = (1 - b - k) / (1 - k);
+    return { c, m, y, k };
+}
+
+/**
+ * Converts a CMYK color to the equivalent RGB color values
+ * @param{number} c - cyan value
+ * @param{number} m - magenta value
+ * @param{number} y - yellow value
+ * @param{number} k - black value
+ * @returns{ColorRGB} RGB color values
+ */
+export function cmykToRGB(c, m, y, k) {
+    const r = 255 * (1 - c) * (1 - k);
+    const g = 255 * (1 - m) * (1 - k);
+    const b = 255 * (1 - y) * (1 - k);
+    return { r, g, b };
 }

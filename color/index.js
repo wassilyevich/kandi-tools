@@ -1,1 +1,1 @@
-export { parseColor } from "./conversion.js";
+export { parseColor, rgbToCMYK, cmykToRGB } from "./conversion.js";
