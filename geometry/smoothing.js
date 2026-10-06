@@ -1,4 +1,4 @@
-import { lerp } from "kandi-tools/math";
+import { lerp } from "../math/index.js";
 /**
  * @typedef {{ x: number, y: number }} Point2
  */
@@ -7,7 +7,8 @@ import { lerp } from "kandi-tools/math";
  * Smooths the polyline provided using Chaikin smoothing
  * @param{Array<Point2>} points - Polyline as an array of 2D points
  * @param {number} iterations - Number of iterations, each doubling the amount of points
- * @param {number} ratio - Lower relative positioning indication of cutting point (default=0.25)
+ * @param {number} [ratio=0.25] - Lower relative positioning indication of cutting point
+ * @param {boolean} [closed=false] - true: also smooths the segment from the last point back to the first
  * @returns {Array<Point2>} New smoothed polyline as an array of 2D points
  */
 export function chaikin(points, iterations, ratio = 0.25, closed = false) {
@@ -40,5 +41,5 @@ export function chaikin(points, iterations, ratio = 0.25, closed = false) {
         );
     }
     if (iterations <= 1) return iterPoints;
-    return chaikin(iterPoints, iterations - 1);
+    return chaikin(iterPoints, iterations - 1, ratio, closed);
 }
