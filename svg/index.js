@@ -76,8 +76,9 @@ export function addCircle(layer, cx, cy, r) {
 /**
  * Adds a cubic Bézier curve to an SVG object layer
  * @param {Layer} layer - reference to an SVG layer
- * @param {Array.<Point2>} points - points for the Bézier curve
- * @param {Array.<Point2>} controlPoints - control points for the Bézier curve
+ * @param {Array.<Point2>} points - start point, then groups of three: control 1, control 2, end point
+ *   (so [p0, c1, c2, p1, c3, c4, p2, ...]); leftover points that don't complete a group are ignored
+ * @param {boolean} [closed=false] - whether to append Z to close the path
  */
 export function addBezier(layer, points, closed = false) {
     layer.polylines.push({
@@ -95,6 +96,7 @@ export function addBezier(layer, points, closed = false) {
  * @param {number} r - radius of the arc
  * @param {number} startAngle - angle to start the arc at (in radians)
  * @param {number} endAngle - angle to end the arc at (in radians)
+ * @param {boolean} [counterclockwise=false] - draw the arc the other way round
  */
 export function addArc(
     layer,
@@ -135,7 +137,8 @@ export function addDot(layer, cx, cy, lineLength = 0.01) {
  * @param {SVGDoc} - SVG object to parse to a string
  */
 export function toString(svg) {
-    const header = '<svg xmlns="http://www.w3.org/2000/svg"';
+    const header =
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"';
     const dimensions = `width="${svg.width}${svg.units}" height="${svg.height}${svg.units}"`;
     const viewBox = `viewBox="0 0 ${svg.width} ${svg.height}"`;
     let SVGString = "";
@@ -188,10 +191,15 @@ function parseArc(shape) {
     const startY = shape.cy + shape.r * Math.sin(shape.startAngle);
     const endX = shape.cx + shape.r * Math.cos(shape.endAngle);
     const endY = shape.cy + shape.r * Math.sin(shape.endAngle);
-    const angleDiff =
+    // Angle swept going clockwise (increasing angle, since SVG's y axis points down)
+    const clockwiseDiff =
         (shape.endAngle - shape.startAngle + 2 * Math.PI) % (2 * Math.PI);
-    const largeArc = angleDiff > Math.PI ? 1 : 0;
-    const sweep = shape.anticlockwise ? 0 : 1;
+    // Going the other way round sweeps the rest of the circle
+    const sweptAngle = shape.counterclockwise
+        ? 2 * Math.PI - clockwiseDiff
+        : clockwiseDiff;
+    const largeArc = sweptAngle > Math.PI ? 1 : 0;
+    const sweep = shape.counterclockwise ? 0 : 1;
     let d = `M ${startX},${startY} A ${shape.r},${shape.r} 0 ${largeArc},${sweep} ${endX},${endY}`;
     return `d="${d}"`;
 }
