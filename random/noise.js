@@ -57,7 +57,8 @@ export function createNoise(seed) {
         range: prng.range,
         pick: prng.pick,
         noise2d,
-        noise3d: (x, y, z, frequency = 1, amplitude = 1) => {},
+        // noise3d: not implemented yet. Left out on purpose: an empty stub
+        // returns undefined, which turns into NaN silently in user code.
     };
 }
 
