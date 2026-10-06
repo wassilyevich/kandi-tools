@@ -6,12 +6,43 @@
         "test": "node --test \"test/**/*.test.js\""
     },
     "description": "A creative coding toolbox for reusable utility functions, objects, and algorithms.",
+    "keywords": [
+        "creative-coding",
+        "generative-art",
+        "pen-plotter",
+        "plotter",
+        "svg",
+        "geometry",
+        "noise",
+        "color"
+    ],
     "author": {
         "name": "Daan Van Cauteren",
         "email": "contact@wassi.art",
-        "url": "www.wassi.art"
+        "url": "https://wassi.art"
     },
     "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/wassilyevich/kandi-tools.git"
+    },
+    "homepage": "https://github.com/wassilyevich/kandi-tools#readme",
+    "bugs": {
+        "url": "https://github.com/wassilyevich/kandi-tools/issues"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "files": [
+        "index.js",
+        "analysis/",
+        "color/",
+        "geometry/",
+        "images/",
+        "math/",
+        "random/",
+        "svg/"
+    ],
     "exports": {
         ".": "./index.js",
         "./geometry": "./geometry/index.js",
