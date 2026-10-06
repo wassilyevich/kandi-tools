@@ -8,9 +8,10 @@
  * @param {Array<{x: number, y: number}>} points - Input points
  * @param {number} k - Number of clusters to find (integer)
  * @param {number} margin - Distance margin for convergence check (stalling)
+ * @param {Function} [random=Math.random] - function returning values in [0, 1); pass a seeded PRNG for reproducible results
  * @returns {KMeansResult}
  */
-export function kmeans(points, k, margin) {
+export function kmeans(points, k, margin, random = Math.random) {
     let clusters = [];
     let initClusters = [];
     for (let i = 0; i < k; i++) {
@@ -21,21 +22,15 @@ export function kmeans(points, k, margin) {
 
     // RANDOM PARTITION CLUSTER ASSIGNMENT
     points.forEach((point) => {
-        initClusters[Math.floor(Math.random() * k)].push(point);
+        initClusters[Math.floor(random() * k)].push(point);
     });
     // Initialize centroids based on initial cluster assignment (RANDOM PARTITION)
+    // A cluster that received no points has no mean (0 / 0 = NaN),
+    // so it starts at a randomly picked input point instead
     let centroids = [];
     for (let i = 0; i < k; i++) {
-        let cX = 0;
-        let cY = 0;
-        for (let j = 0; j < initClusters[i].length; j++) {
-            cX += initClusters[i][j].x;
-            cY += initClusters[i][j].y;
-        }
-        centroids.push({
-            x: cX / initClusters[i].length,
-            y: cY / initClusters[i].length,
-        });
+        const fallback = points[Math.floor(random() * points.length)];
+        centroids.push(calculateCentroid(initClusters[i], fallback));
     }
     let iterations = 0;
     let convergenceDeltas = [];
@@ -58,7 +53,8 @@ export function kmeans(points, k, margin) {
         }
         let newCentroids = [];
         for (let i = 0; i < k; i++) {
-            let newCentroid = calculateCentroid(clusters[i]);
+            // An empty cluster keeps its previous centroid
+            let newCentroid = calculateCentroid(clusters[i], centroids[i]);
             newCentroids.push(newCentroid);
         }
 
@@ -86,7 +82,8 @@ function findDistance(p1, p2) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-function calculateCentroid(points) {
+function calculateCentroid(points, fallback) {
+    if (points.length === 0) return { x: fallback.x, y: fallback.y };
     let cX = 0;
     let cY = 0;
     for (let j = 0; j < points.length; j++) {
