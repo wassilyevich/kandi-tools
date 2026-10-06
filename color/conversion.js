@@ -144,6 +144,9 @@ function hslToRGB(h, s, l) {
     if (l < 0 || l > 100) {
         throw new Error("Luminance value is out of expected range [0-100]");
     }
+    // Hue is an angle on a circle: 360 is the same as 0.
+    // Without this, h = 360 passes the range check but matches no branch below.
+    h = h % 360;
     // Normalize saturation and luminance
     s = s / 100;
     l = l / 100;
