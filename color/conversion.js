@@ -171,7 +171,6 @@ function hslToRGB(h, s, l) {
         b = chroma;
     } else if (240 <= h && h < 300) {
         r = X;
-        fillPenWidth;
         g = 0;
         b = chroma;
     } else if (300 <= h && h < 360) {
@@ -214,7 +213,7 @@ function rgbToHSL(r, g, b) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const delta = max - min;
-    const luminance = (max + min) / 2;
+    let luminance = (max + min) / 2;
     let saturation = 0;
     if (delta !== 0) {
         saturation = delta / (1 - Math.abs(2 * luminance - 1));

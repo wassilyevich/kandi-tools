@@ -1,6 +1,6 @@
 {
     "name": "kandi-tools",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "type": "module",
     "description": "A creative coding toolbox for reusable utility functions, objects, and algorithms.",
     "author": {
