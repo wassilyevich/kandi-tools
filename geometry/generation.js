@@ -194,3 +194,135 @@ export function hatchFill(polygon, angle, spacing) {
     // Rotate segments back to original angle
     return lineSegments.map((segment) => rotatePolygon(segment, angle));
 }
+
+/**
+ * Poisson disk sampling with a spatially varying minimum distance.
+ * radiusAt(x, y) returns the minimum distance at that position, or null/Infinity for "no points here".
+ * Disconnected regions are reached by re-seeding from a shuffled jittered seed grid
+ * whenever the active list runs empty.
+ * @param {number} width - width of the area
+ * @param {number} height - height of the area
+ * @param {(x: number, y: number) => number|null} radiusAt - local minimum distance (local coordinates)
+ * @param {number} rMin - smallest radius radiusAt can return (radii below are clamped to it)
+ * @param {{ maxAttempts?: number, random?: Function, origin?: Point2, seedSpacing?: number }} [options]
+ * @returns {Array<Point2>} generated points (offset by origin)
+ */
+export function poissonDiskVariable(
+    width,
+    height,
+    radiusAt,
+    rMin,
+    {
+        maxAttempts = 30,
+        random = Math.random,
+        origin = { x: 0, y: 0 },
+        seedSpacing = 4 * rMin,
+    } = {},
+) {
+    const cellSize = rMin / Math.SQRT2;
+    const cols = Math.ceil(width / cellSize);
+    const rows = Math.ceil(height / cellSize);
+    const grid = new Int32Array(cols * rows).fill(-1);
+    const pts = [];
+    const radii = [];
+    const active = [];
+
+    const valid = (r) => r !== null && r !== undefined && Number.isFinite(r);
+
+    // Is (x, y) at least r away from every existing point?
+    const fits = (x, y, r) => {
+        const col = Math.floor(x / cellSize);
+        const row = Math.floor(y / cellSize);
+        const reach = Math.ceil(r / cellSize);
+        const c0 = Math.max(0, col - reach);
+        const c1 = Math.min(cols - 1, col + reach);
+        const r0 = Math.max(0, row - reach);
+        const r1 = Math.min(rows - 1, row + reach);
+        for (let rr = r0; rr <= r1; rr++) {
+            for (let cc = c0; cc <= c1; cc++) {
+                const i = grid[rr * cols + cc];
+                if (i < 0) continue;
+                const dx = pts[i].x - x;
+                const dy = pts[i].y - y;
+                if (dx * dx + dy * dy < r * r) return false;
+            }
+        }
+        return true;
+    };
+
+    const add = (x, y, r) => {
+        const i = pts.length;
+        pts.push({ x, y });
+        radii.push(r);
+        active.push(i);
+        grid[Math.floor(y / cellSize) * cols + Math.floor(x / cellSize)] = i;
+    };
+
+    // Jittered seed grid, shuffled (Fisher-Yates)
+    const seeds = [];
+    for (let y = seedSpacing / 2; y < height; y += seedSpacing) {
+        for (let x = seedSpacing / 2; x < width; x += seedSpacing) {
+            seeds.push({
+                x: Math.min(
+                    width - 1e-6,
+                    Math.max(0, x + (random() - 0.5) * seedSpacing),
+                ),
+                y: Math.min(
+                    height - 1e-6,
+                    Math.max(0, y + (random() - 0.5) * seedSpacing),
+                ),
+            });
+        }
+    }
+    for (let i = seeds.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [seeds[i], seeds[j]] = [seeds[j], seeds[i]];
+    }
+
+    let s = 0;
+    while (true) {
+        if (active.length === 0) {
+            // Growth died out: start a new island from the next valid seed
+            let seeded = false;
+            while (s < seeds.length) {
+                const { x, y } = seeds[s++];
+                let r = radiusAt(x, y);
+                if (!valid(r)) continue;
+                r = Math.max(r, rMin);
+                if (fits(x, y, r)) {
+                    add(x, y, r);
+                    seeded = true;
+                    break;
+                }
+            }
+            if (!seeded) break;
+        }
+
+        const ai = Math.floor(random() * active.length);
+        const p = pts[active[ai]];
+        const rp = radii[active[ai]];
+        let found = false;
+        for (let k = 0; k < maxAttempts; k++) {
+            const angle = random() * 2 * Math.PI;
+            const d = rp * (1 + random());
+            const x = p.x + d * Math.cos(angle);
+            const y = p.y + d * Math.sin(angle);
+            if (x < 0 || x >= width || y < 0 || y >= height) continue;
+            let r = radiusAt(x, y);
+            if (!valid(r)) continue;
+            r = Math.max(r, rMin);
+            if (fits(x, y, r)) {
+                add(x, y, r);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // Swap-remove: O(1) instead of splice
+            active[ai] = active[active.length - 1];
+            active.pop();
+        }
+    }
+
+    return pts.map((p) => ({ x: p.x + origin.x, y: p.y + origin.y }));
+}
