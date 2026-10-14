@@ -17,8 +17,11 @@ import { poissonDisk, hatchFill } from "kandi-tools/geometry";
 - [bezierPoint](#bezierpoint)
 - [sampleBezier](#samplebezier)
 - [chaikin](#chaikin)
-- [Hulls & containment](#hulls--containment): `convexHull`, `grahamScan`, `isInsideHull`, `isInsidePolygon`
-- [Measuring](#measuring): `distance2d`, `lineIntersection2d`
+- [convexHull](#convexhull)
+- [grahamScan](#grahamscan)
+- [isInsideHull](#isinsidehull)
+- [isInsidePolygon](#isinsidepolygon)
+- [distance2d](#distance2d)
 
 ## Functions
 
@@ -287,7 +290,7 @@ chaikin(points, iterations, ratio?, closed?)
 | `ratio`      | number          | 0.25    | relative positioning of the lower cut (0 - 0.5) (both exclusive)        |
 | `closed`     | boolean         | `false` | boolean to tell the algorithm whether the polyline is closed or not     |
 
-**Returns** an array of points: `Array<Point2>`
+**Returns** a smoothed polyline: `Array<Point2>`
 
 Minimal example (pseudo-code):
 
@@ -311,9 +314,9 @@ context.lineTo(polyline[0].x, polyline[0].y);
 context.stroke();
 context.lineWidth = 3;
 
-const redPoints = geometry.chaikin(polyline, 1, 0.25, true);
-const greenPoints = geometry.chaikin(polyline, 2, 0.25, true);
-const bluePoints = geometry.chaikin(polyline, 4, 0.25, true);
+const redPoints = chaikin(polyline, 1, 0.25, true);
+const greenPoints = chaikin(polyline, 2, 0.25, true);
+const bluePoints = chaikin(polyline, 4, 0.25, true);
 context.strokeStyle = "red";
 context.beginPath();
 for (let i = 0; i < redPoints.length - 1; i++) {
@@ -382,7 +385,7 @@ for (let i = 0; i < nPoints; i++) {
         y: Math.random() * 500,
     });
 }
-const hull = geometry.convexHull(points, "graham").hull;
+const hull = convexHull(points, "graham").hull;
 context.fillStyle = "black";
 context.strokeStyle = "red";
 context.lineWidth = 3;
@@ -403,3 +406,291 @@ context.stroke();
 _Graham scan algorithm: Ronald Graham, 1972_
 
 ![Result](docs/ex-convexHull.png)
+
+---
+
+### grahamScan
+
+```js
+grahamScan(points);
+```
+
+> Finds the convex hull of a set of 2D points using Graham Scan (convexHull uses this function)
+
+| Parameter | Type            | Default | Description                       |
+| --------- | --------------- | ------- | --------------------------------- |
+| `points`  | `Array<Point2>` |         | points to fin the convex hull for |
+
+**Returns** a result object:
+
+```js
+{
+    hull: Array<Point2>,
+    hullCount: number
+}
+```
+
+The same example as in [convexHull](#convexhull) can be used, since it uses the exact same algorithm.
+
+---
+
+### isInsideHull
+
+```js
+isInsideHull(point, hull);
+```
+
+> Finds whether a point lies insde a convex hull or not. _Note: when not sure if the provided points are a convex hull, use [isInsidePolygon](#isinsidepolygon)_
+
+| Parameter | Type            | Default | Description                            |
+| --------- | --------------- | ------- | -------------------------------------- |
+| `point`   | `Point2`        |         | point to check against the convex hull |
+| `hull`    | `Array<Point2>` |         | convex hull to check point against     |
+
+**Returns** a `boolean`
+
+Minimal example (pseudo-code):
+
+```js
+// Draw a convex hull and draw points inside it as green, points outside it as red
+const nPoints = 15;
+const nCheckPoints = 15;
+const points = [];
+for (let i = 0; i < nPoints; i++) {
+    points.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+}
+const hull = convexHull(points, "graham").hull;
+const checkPoints = [];
+for (let i = 0; i < nCheckPoints; i++) {
+    checkPoints.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+    if (isInsideHull(checkPoints[i], hull)) {
+        checkPoints[i].color = "green";
+    } else {
+        checkPoints[i].color = "red";
+    }
+}
+context.strokeStyle = "red";
+context.beginPath();
+context.moveTo(hull[0].x, hull[0].y);
+for (let i = 0; i < hull.length; i++) {
+    context.lineTo(hull[i].x, hull[i].y);
+}
+context.lineTo(hull[0].x, hull[0].y);
+context.stroke();
+for (let i = 0; i < nCheckPoints; i++) {
+    context.beginPath();
+    context.fillStyle = checkPoints[i].color;
+    context.arc(checkPoints[i].x, checkPoints[i].y, 3, 0, 2 * Math.PI);
+    context.fill();
+}
+```
+
+![Result](docs/ex-isInsideHull.png)
+
+---
+
+### isInsidePolygon
+
+```js
+isInsidePolygon(point, polygon);
+```
+
+> Finds whether a point lies insde a polygon or not.
+
+| Parameter | Type            | Default | Description                            |
+| --------- | --------------- | ------- | -------------------------------------- |
+| `point`   | `Point2`        |         | point to check against the convex hull |
+| `polygon` | `Array<Point2>` |         | polygon to check point against         |
+
+**Returns** a `boolean`
+
+Minimal example (pseudo-code):
+
+```js
+// Draw a polygon and draw points inside it as green, points outside it as red
+const polygon = [
+    { x: 1, y: 1 },
+    { x: 500 - 1, y: 1 },
+    { x: 500 - 1, y: 500 - 1 },
+    { x: 1, y: 500 - 1 },
+    { x: 500 / 2, y: 500 / 2 },
+];
+const nCheckPoints = 15;
+const checkPoints = [];
+for (let i = 0; i < nCheckPoints; i++) {
+    checkPoints.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+    if (isInsidePolygon(checkPoints[i], polygon)) {
+        checkPoints[i].color = "green";
+    } else {
+        checkPoints[i].color = "red";
+    }
+}
+context.fillStyle = "black";
+context.strokeStyle = "red";
+context.lineWidth = 3;
+context.beginPath();
+context.moveTo(polygon[0].x, polygon[0].y);
+for (let i = 0; i < polygon.length; i++) {
+    context.lineTo(polygon[i].x, polygon[i].y);
+}
+context.lineTo(polygon[0].x, polygon[0].y);
+context.stroke();
+for (let i = 0; i < nCheckPoints; i++) {
+    context.beginPath();
+    context.fillStyle = checkPoints[i].color;
+    context.arc(checkPoints[i].x, checkPoints[i].y, 3, 0, 2 * Math.PI);
+    context.fill();
+}
+```
+
+![Result](docs/ex-isInsidePolygon.png)
+
+---
+
+### distance2d
+
+```js
+distance2d(p1, p2);
+```
+
+> Calculate the Euclidean distance between 2 2D points
+
+| Parameter | Type     | Default | Description  |
+| --------- | -------- | ------- | ------------ |
+| `p1`      | `Point2` |         | first point  |
+| `p2`      | `Point2` |         | second point |
+
+**Returns** a number
+
+Minimal example (pseudo-code):
+
+```js
+// Spawn a number points and connect them via lines, only draw lines that are within cutoff distance
+const cutoff = width / 10;
+const nPoints = 100;
+const points = [];
+for (let i = 0; i < nPoints; i++) {
+    points.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+}
+const lines = [];
+for (let i = 0; i < nPoints; i++) {
+    for (let j = 0; j < nPoints; j++) {
+        if (i === j) continue;
+        lines.push({
+            points: [
+                { x: points[i].x, y: points[i].y },
+                { x: points[j].x, y: points[j].y },
+            ],
+            draw: distance2d(points[i], points[j]) <= cutoff ? true : false,
+        });
+    }
+}
+context.fillStyle = "black";
+for (let i = 0; i < nPoints; i++) {
+    context.beginPath();
+    context.arc(points[i].x, points[i].y, 3, 0, 2 * Math.PI);
+    context.fill();
+}
+for (let i = 0; i < lines.length; i++) {
+    if (lines[i].draw) {
+        context.beginPath();
+        context.moveTo(lines[i].points[0].x, lines[i].points[0].y);
+        context.lineTo(lines[i].points[1].x, lines[i].points[1].y);
+        context.stroke();
+    }
+}
+```
+
+![Result](docs/ex-distance2d.png)
+
+---
+
+### lineIntersection2D
+
+```js
+lineIntersection2d(p1, p2, p3, p4, segment?)
+```
+
+> Finds the intersection point of 2 lines defined by 4 points
+
+| Parameter | Type      | Default | Description                                                            |
+| --------- | --------- | ------- | ---------------------------------------------------------------------- |
+| `p1`      | `Point2`  |         | first point (line 1)                                                   |
+| `p2`      | `Point2`  |         | second point (line 1)                                                  |
+| `p3`      | `Point2`  |         | third point (line 2)                                                   |
+| `p4`      | `Point2`  |         | fourth point (line 2)                                                  |
+| `segment` | `boolean` | false   | the point is only returned if it lies between the bounds of both lines |
+
+| **Returns** a point: `Point2`
+
+Minimal example (pseudo-code):
+
+```js
+// Draw lines connecting random points and visualize their intersections in blue
+const p1 = [];
+const p2 = [];
+const p3 = [];
+const p4 = [];
+const nLines = 10;
+const intersections = [];
+for (let i = 0; i < nLines; i++) {
+    p1.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+    p2.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+    p3.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+    p4.push({
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+    });
+}
+for (let i = 0; i < nLines; i++) {
+    for (let j = 0; j < nLines; j++) {
+        if (i === j) continue;
+        if (lineIntersection2d(p1[i], p2[i], p3[j], p4[j], true)) {
+            intersections.push(
+                lineIntersection2d(p1[i], p2[i], p3[j], p4[j], true),
+            );
+        }
+    }
+}
+for (let i = 0; i < nLines; i++) {
+    context.strokeStyle = "green";
+    context.beginPath();
+    context.moveTo(p1[i].x, p1[i].y);
+    context.lineTo(p2[i].x, p2[i].y);
+    context.stroke();
+    context.strokeStyle = "red";
+    context.beginPath();
+    context.moveTo(p3[i].x, p3[i].y);
+    context.lineTo(p4[i].x, p4[i].y);
+    context.stroke();
+}
+context.fillStyle = "blue";
+for (let i = 0; i < intersections.length; i++) {
+    context.beginPath();
+    context.arc(intersections[i].x, intersections[i].y, 3, 0, 2 * Math.PI);
+    context.fill();
+}
+```
+
+![Result](docs/ex-lineIntersection2d.png)
