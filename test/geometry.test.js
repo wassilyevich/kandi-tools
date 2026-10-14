@@ -9,6 +9,7 @@ import { bezierPoint, sampleBezier } from "../geometry/curves.js";
 import {
     poissonDisk,
     poissonDiskPolygon,
+    poissonDiskVariable,
     hatchFill,
 } from "../geometry/generation.js";
 import { createPRNG } from "../random/prng.js";
@@ -141,4 +142,57 @@ test("hatchFill: horizontal hatch of a square, boustrophedon order", () => {
     for (let i = 1; i < segments.length; i++) {
         assert.notEqual(dir(segments[i]), dir(segments[i - 1]));
     }
+});
+
+// ---------------------------------------------------------------------------
+// poissonDiskVariable: again properties instead of exact values.
+
+
+// Dense on the left (r = 1), sparse on the right (r = 4)
+const leftDense = (x) => (x < 50 ? 1 : 4);
+
+test("poissonDiskVariable: stays inside bounds and is seed-deterministic", () => {
+    const a = poissonDiskVariable(100, 40, leftDense, 1, { random: createPRNG(4).random });
+    const b = poissonDiskVariable(100, 40, leftDense, 1, { random: createPRNG(4).random });
+    assert.deepEqual(a, b);
+    for (const p of a) assert.ok(p.x >= 0 && p.x < 100 && p.y >= 0 && p.y < 40);
+});
+
+// Every point must respect ITS OWN radius towards every earlier point.
+// (Note: the check is one-sided by design: a point in a dense zone may sit
+// closer to a sparse-zone neighbour than that neighbour's own radius.)
+test("poissonDiskVariable: no pair closer than the smaller of their radii", () => {
+    const pts = poissonDiskVariable(100, 40, leftDense, 1, { random: createPRNG(5).random });
+    for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+            const r = Math.min(leftDense(pts[i].x), leftDense(pts[j].x));
+            assert.ok(distance2d(pts[i], pts[j]) >= r - 1e-9);
+        }
+    }
+});
+
+// Density scales with 1 / r², so r = 1 vs r = 4 should give ~16x more points.
+// A loose range, because packing near the boundary between zones is messy.
+test("poissonDiskVariable: density follows the radius field", () => {
+    const pts = poissonDiskVariable(100, 40, leftDense, 1, { random: createPRNG(6).random });
+    const left = pts.filter((p) => p.x < 50).length;
+    const right = pts.length - left;
+    const ratio = left / right;
+    assert.ok(ratio > 8 && ratio < 25, `ratio ${ratio.toFixed(1)}`);
+});
+
+// null means "no points here"; disconnected islands must still be found
+// thanks to the re-seeding grid.
+test("poissonDiskVariable: null zones stay empty, separate islands are filled", () => {
+    const islands = (x) => (x < 20 || x > 80 ? 2 : null);
+    const pts = poissonDiskVariable(100, 40, islands, 2, { random: createPRNG(7).random });
+    assert.ok(pts.every((p) => p.x < 20 || p.x > 80));
+    assert.ok(pts.some((p) => p.x < 20) && pts.some((p) => p.x > 80));
+});
+
+test("poissonDiskVariable: origin offsets the output", () => {
+    const opts = (o) => ({ random: createPRNG(8).random, origin: o });
+    const a = poissonDiskVariable(20, 20, () => 2, 2, opts({ x: 0, y: 0 }));
+    const b = poissonDiskVariable(20, 20, () => 2, 2, opts({ x: 100, y: 50 }));
+    assert.deepEqual(b, a.map((p) => ({ x: p.x + 100, y: p.y + 50 })));
 });
