@@ -22,6 +22,9 @@ import { poissonDisk, hatchFill } from "kandi-tools/geometry";
 - [isInsideHull](#isinsidehull)
 - [isInsidePolygon](#isinsidepolygon)
 - [distance2d](#distance2d)
+- [lineIntersection2d](#lineintersection2d)
+
+All examples below can be found as a **kandi**-based version in the [kandi-examples](https://github.com/wassilyevich/kandi-tools/tree/main/geometry/kandi-examples) folder
 
 ## Functions
 
@@ -63,7 +66,7 @@ points.forEach((p) => {
 ### poissonDiskPolygon
 
 ```js
-posissonDiskPolygon(polygon, minDist, maxAttempts?, random?)
+poissonDiskPolygon(polygon, minDist, maxAttempts?, random?)
 ```
 
 > Randomly distribute 2D points in a polygonal area with quasi-even spacing using Poisson Disk sampling.
@@ -117,7 +120,7 @@ poissonDiskVariable(width, height, radiusAt, rMin, {maxAttempts?, random?, origi
 | `maxAttempts` | number        | 30            | maximum number of attempts to try and generate a new point                                      |
 | `random`      | function      | `Math.random` | callback function that generates random values between [0-1] (use a seedable PRNG if necessary) |
 | `origin`      | point         | `{x:0, y:0}`  | origin parameter for correct offsetting                                                         |
-| `seedSpacing` | point         | `4 * rMin`    | seed for shuffled seed grid (Fisher-Yates approach)                                             |
+| `seedSpacing` | number        | `4 * rMin`    | spacing of the grid for restart points (Fisher-Yates approach)                                  |
 
 **Returns** an array of points: `Array<Point2>`
 
@@ -283,12 +286,12 @@ chaikin(points, iterations, ratio?, closed?)
 
 > Smooth a polyline using the Chaikin smoothing (corner cutting)
 
-| Parameter    | Type            | Default | Description                                                             |
-| ------------ | --------------- | ------- | ----------------------------------------------------------------------- |
-| `points`     | `Array<Point2>` |         | non-smooth polyline that is smoothed                                    |
-| `iterations` | number          |         | number of recursive iterations (higher means smoother, and more points) |
-| `ratio`      | number          | 0.25    | relative positioning of the lower cut (0 - 0.5) (both exclusive)        |
-| `closed`     | boolean         | `false` | boolean to tell the algorithm whether the polyline is closed or not     |
+| Parameter    | Type            | Default | Description                                                                                                         |
+| ------------ | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `points`     | `Array<Point2>` |         | non-smooth polyline that is smoothed                                                                                |
+| `iterations` | number          |         | number of recursive iterations (higher means smoother, and more points)                                             |
+| `ratio`      | number          | 0.25    | relative positioning of the lower cut (0 - 0.5) (both exclusive, since otherwise the points collapse on themselves) |
+| `closed`     | boolean         | `false` | boolean to tell the algorithm whether the polyline is closed or not                                                 |
 
 **Returns** a smoothed polyline: `Array<Point2>`
 
@@ -359,7 +362,7 @@ convexHull(points, algorithm?);
 
 | Parameter   | Type            | Default  | Description                                         |
 | ----------- | --------------- | -------- | --------------------------------------------------- |
-| `points`    | `Array<Point2>` |          | points to fin the convex hull for                   |
+| `points`    | `Array<Point2>` |          | points to find the convex hull for                  |
 | `algorithm` | `string`        | `graham` | used algorithm - currently only support Graham Scan |
 
 **Returns** a result object:
@@ -417,9 +420,9 @@ grahamScan(points);
 
 > Finds the convex hull of a set of 2D points using Graham Scan (convexHull uses this function)
 
-| Parameter | Type            | Default | Description                       |
-| --------- | --------------- | ------- | --------------------------------- |
-| `points`  | `Array<Point2>` |         | points to fin the convex hull for |
+| Parameter | Type            | Default | Description                        |
+| --------- | --------------- | ------- | ---------------------------------- |
+| `points`  | `Array<Point2>` |         | points to find the convex hull for |
 
 **Returns** a result object:
 
@@ -427,7 +430,7 @@ grahamScan(points);
 {
     hull: Array<Point2>,
     hullCount: number
-}
+}s
 ```
 
 The same example as in [convexHull](#convexhull) can be used, since it uses the exact same algorithm.
@@ -440,7 +443,7 @@ The same example as in [convexHull](#convexhull) can be used, since it uses the 
 isInsideHull(point, hull);
 ```
 
-> Finds whether a point lies insde a convex hull or not. _Note: when not sure if the provided points are a convex hull, use [isInsidePolygon](#isinsidepolygon)_
+> Finds whether a point lies inside a convex hull or not. _Note: when not sure if the provided points are a convex hull, use [isInsidePolygon](#isinsidepolygon)_
 
 | Parameter | Type            | Default | Description                            |
 | --------- | --------------- | ------- | -------------------------------------- |
@@ -501,12 +504,12 @@ for (let i = 0; i < nCheckPoints; i++) {
 isInsidePolygon(point, polygon);
 ```
 
-> Finds whether a point lies insde a polygon or not.
+> Finds whether a point lies inside a polygon or not.
 
-| Parameter | Type            | Default | Description                            |
-| --------- | --------------- | ------- | -------------------------------------- |
-| `point`   | `Point2`        |         | point to check against the convex hull |
-| `polygon` | `Array<Point2>` |         | polygon to check point against         |
+| Parameter | Type            | Default | Description                        |
+| --------- | --------------- | ------- | ---------------------------------- |
+| `point`   | `Point2`        |         | point to check against the polygon |
+| `polygon` | `Array<Point2>` |         | polygon to check point against     |
 
 **Returns** a `boolean`
 
@@ -575,7 +578,7 @@ Minimal example (pseudo-code):
 
 ```js
 // Spawn a number points and connect them via lines, only draw lines that are within cutoff distance
-const cutoff = width / 10;
+const cutoff = 500 / 10;
 const nPoints = 100;
 const points = [];
 for (let i = 0; i < nPoints; i++) {
@@ -586,7 +589,7 @@ for (let i = 0; i < nPoints; i++) {
 }
 const lines = [];
 for (let i = 0; i < nPoints; i++) {
-    for (let j = 0; j < nPoints; j++) {
+    for (let j = i + 1; j < nPoints; j++) {
         if (i === j) continue;
         lines.push({
             points: [
@@ -617,7 +620,7 @@ for (let i = 0; i < lines.length; i++) {
 
 ---
 
-### lineIntersection2D
+### lineIntersection2d
 
 ```js
 lineIntersection2d(p1, p2, p3, p4, segment?)
@@ -633,7 +636,7 @@ lineIntersection2d(p1, p2, p3, p4, segment?)
 | `p4`      | `Point2`  |         | fourth point (line 2)                                                  |
 | `segment` | `boolean` | false   | the point is only returned if it lies between the bounds of both lines |
 
-| **Returns** a point: `Point2`
+**Returns** a point `Point2` or `null` (for parallel lines or misses)
 
 Minimal example (pseudo-code):
 

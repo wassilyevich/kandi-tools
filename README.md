@@ -38,7 +38,7 @@ writeFileSync("dots.svg", svgToString(svg));
 | ---------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `geometry` | Generating and manipulating points, curves, and polygons              | [geometry](https://github.com/wassilyevich/kandi-tools/tree/main/geometry) |
 | `math`     | Often used mathematical formulations/functions not included in `Math` | [math](https://github.com/wassilyevich/kandi-tools/tree/main/math)         |
-| `random`   | Seedable random functions inclusing noise and pick                    | [random](https://github.com/wassilyevich/kandi-tools/tree/main/random)     |
+| `random`   | Seedable random functions including noise and pick                    | [random](https://github.com/wassilyevich/kandi-tools/tree/main/random)     |
 | `color`    | Analyzing and converting color                                        | [color](https://github.com/wassilyevich/kandi-tools/tree/main/color)       |
 | `svg`      | Creating plottable SVG files                                          | [svg](https://github.com/wassilyevich/kandi-tools/tree/main/svg)           |
 | `analysis` | Analyzing data/points - _more complex_ algorithms                     | [analysis](https://github.com/wassilyevich/kandi-tools/tree/main/analysis) |

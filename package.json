@@ -41,7 +41,8 @@
         "images/",
         "math/",
         "random/",
-        "svg/"
+        "svg/",
+        "!**/docs/"
     ],
     "exports": {
         ".": "./index.js",
