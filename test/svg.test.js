@@ -5,7 +5,7 @@ import {
     addLayer,
     addPolyline,
     addArc,
-    toString,
+    svgToString,
 } from "../svg/index.js";
 
 function makeDoc() {
@@ -14,9 +14,9 @@ function makeDoc() {
     return { svg, layer };
 }
 
-test("toString: header has physical size and unit viewBox", () => {
+test("svgToString: header has physical size and unit viewBox", () => {
     const { svg } = makeDoc();
-    const out = toString(svg);
+    const out = svgToString(svg);
     assert.match(out, /width="100mm" height="50mm"/);
     assert.match(out, /viewBox="0 0 100 50"/);
 });
@@ -24,10 +24,10 @@ test("toString: header has physical size and unit viewBox", () => {
 // XML rule: every prefix (the part before ":" in an attribute name) must be
 // declared with xmlns:prefix="..." somewhere above it. This test checks that
 // rule generically, so it also catches any prefix added in the future.
-test("toString: every namespace prefix used is declared", () => {
+test("svgToString: every namespace prefix used is declared", () => {
     const { svg, layer } = makeDoc();
     addPolyline(layer, [{ x: 0, y: 0 }, { x: 10, y: 10 }]);
-    const out = toString(svg);
+    const out = svgToString(svg);
 
     const usedPrefixes = new Set(
         [...out.matchAll(/\s([a-zA-Z]+):[a-zA-Z]+=/g)]
@@ -44,9 +44,9 @@ test("toString: every namespace prefix used is declared", () => {
     }
 });
 
-test("toString: layer becomes an Inkscape layer group", () => {
+test("svgToString: layer becomes an Inkscape layer group", () => {
     const { svg } = makeDoc();
-    const out = toString(svg);
+    const out = svgToString(svg);
     assert.match(out, /<g id="pen-1" inkscape:label="pen-1" inkscape:groupmode="layer">/);
 });
 
@@ -54,7 +54,7 @@ test("addPolyline: open and closed paths", () => {
     const { svg, layer } = makeDoc();
     addPolyline(layer, [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }]);
     addPolyline(layer, [{ x: 0, y: 0 }, { x: 5, y: 5 }], true);
-    const out = toString(svg);
+    const out = svgToString(svg);
     assert.match(out, /d="M 0,0 L 10,0 L 10,10 "/);
     assert.match(out, /d="M 0,0 L 5,5 Z"/);
 });
@@ -71,7 +71,7 @@ function arcFlags(out) {
 test("addArc: clockwise quarter arc", () => {
     const { svg, layer } = makeDoc();
     addArc(layer, 0, 0, 10, 0, Math.PI / 2);
-    assert.deepEqual(arcFlags(toString(svg)), { largeArc: 0, sweep: 1 });
+    assert.deepEqual(arcFlags(svgToString(svg)), { largeArc: 0, sweep: 1 });
 });
 
 // Same endpoints, other direction: going counterclockwise from 0 to PI/2 is
@@ -81,5 +81,5 @@ test("addArc: clockwise quarter arc", () => {
 test("addArc: counterclockwise flag flips sweep and arc size", () => {
     const { svg, layer } = makeDoc();
     addArc(layer, 0, 0, 10, 0, Math.PI / 2, true);
-    assert.deepEqual(arcFlags(toString(svg)), { largeArc: 1, sweep: 0 });
+    assert.deepEqual(arcFlags(svgToString(svg)), { largeArc: 1, sweep: 0 });
 });

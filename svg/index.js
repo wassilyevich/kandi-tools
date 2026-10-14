@@ -136,7 +136,7 @@ export function addDot(layer, cx, cy, lineLength = 0.01) {
  * Parses the SVG object and its content to an SVG string
  * @param {SVGDoc} - SVG object to parse to a string
  */
-export function toString(svg) {
+export function svgToString(svg) {
     const header =
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"';
     const dimensions = `width="${svg.width}${svg.units}" height="${svg.height}${svg.units}"`;
