@@ -110,16 +110,17 @@ test("unmixer: memoizes, same colour returns the same object", () => {
     assert.equal(unmix(120, 30, 200), unmix(120, 30, 200));
 });
 
-// KNOWN BUG, marked `todo` so it shows up in every run without failing it.
-// A dark purple needs red + blue with total coverage capped at 1. The 2-pen
-// least-squares solution wants c ≈ 0.78 + 0.78 = 1.56, gets rejected for
-// sum > 1, and the unmixer falls back to red ONLY (error ≈ 0.46). The real
-// constrained optimum lies on the sum = 1 edge: 0.5 red + 0.5 blue (error ≈ 0.23).
+// Regression test for a fixed bug. A dark purple needs red + blue with total
+// coverage capped at 1. The unconstrained 2-pen solution wants c ≈ 0.78 + 0.78
+// = 1.56, which used to be rejected, so the unmixer fell back to red ONLY
+// (error ≈ 0.46). The real optimum lies on the sum = 1 edge: 0.5 red + 0.5 blue.
 // Shadows in a portrait are exactly these dark, out-of-reach colours.
-test("unmixer: dark mix uses both pens on the sum = 1 edge", { todo: true }, () => {
+test("unmixer: dark mix uses both pens on the sum = 1 edge", () => {
     const unmix = createUnmixer(WHITE, [RED, BLUE], { lambda: 0 });
-    const { coverage } = unmix(128, 0, 128);
-    assert.ok(coverage[0] > 0.3 && coverage[1] > 0.3, JSON.stringify(coverage));
+    const { coverage, error } = unmix(128, 0, 128);
+    assertClose(coverage[0], 0.5, 1e-6);
+    assertClose(coverage[1], 0.5, 1e-6);
+    assert.ok(error < 0.24, `error ${error}`);
 });
 
 // ---------------------------------------------------------------------------

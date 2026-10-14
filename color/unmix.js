@@ -151,14 +151,30 @@ export function createUnmixer(
                 if (G[k][k] < 1e-12) continue;
                 c = [Math.min(1, Math.max(0, Dt[k] / G[k][k]))];
             } else {
-                // Normal equations for this subset; keep only interior feasible solutions.
-                // Boundary solutions are covered by the smaller subsets.
-                c = solve(
-                    idx.map((i) => idx.map((j) => G[i][j])),
-                    idx.map((i) => Dt[i]),
-                );
-                if (!c || c.some((v) => v < 0)) continue;
-                if (c.reduce((s, v) => s + v, 0) > 1) continue;
+                // The optimum lies on one face of the feasible region. A face is
+                // defined by (a) which pens are 0 and (b) whether sum(c) = 1 is active.
+                // (a) is covered by looping over subsets; (b) needs a second solve.
+                const A = idx.map((i) => idx.map((j) => G[i][j]));
+                const rhs = idx.map((i) => Dt[i]);
+
+                // 1. Unconstrained least squares on this subset (sum(c) < 1)
+                c = solve(A, rhs);
+                const sum = c ? c.reduce((s, v) => s + v, 0) : Infinity;
+
+                if (!c || c.some((v) => v < 0) || sum > 1) {
+                    // 2. Least squares with sum(c) = 1 as an equality constraint,
+                    //    via the KKT system (Lagrange multiplier mu):
+                    //    [ A   1 ] [ c  ]   [ rhs ]
+                    //    [ 1ᵀ  0 ] [ mu ] = [  1  ]
+                    // Needed for dark colours: the pens would want more than 100%
+                    // total coverage, so the best fit sits on the full-coverage edge.
+                    const K = A.map((row) => [...row, 1]);
+                    K.push([...idx.map(() => 1), 0]);
+                    const sol = solve(K, [...rhs, 1]);
+                    if (!sol) continue;
+                    c = sol.slice(0, idx.length); // drop mu
+                    if (c.some((v) => v < 0)) continue; // a pen would go negative: a smaller subset covers this
+                }
             }
             // Squared residual: |t − Σ cD|² = tt − 2 Σ c·Dt + Σ Σ c·c·G
             let err = tt;
