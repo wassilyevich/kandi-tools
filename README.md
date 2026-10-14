@@ -1,12 +1,12 @@
 # kandi-tools
 
-![hero image: a plot made with kandi-tools](docs/hero.png)
+![kandi-tools](docs/github.webp)
 
 **kandi-tools** is a small creative coding toolbox for JavaScript, aimed at generative art for pen plotters and print: sampling, hatching, curves, noise, colour unmixing and layered SVG export in real-world units.
 
 It has zero dependencies, and every algorithm is written from scratch in plain, readable code. It grew out of wanting to build my own tools in a modular way, **and to actually understand them**. It is in many ways inspired by the [canvas-sketch](https://github.com/mattdesl/canvas-sketch/) ecosystem by Matt DesLauriers. Definitely check it out!
 
-It's a work in progress, and best used in through [kandi](https://github.com/wassilyevich/kandi); suggestions and issues are welcome. Happy coding!
+It's a work in progress, and best used through [kandi](https://github.com/wassilyevich/kandi); suggestions and issues are welcome. Happy coding!
 
 ## Install
 
@@ -14,62 +14,22 @@ It's a work in progress, and best used in through [kandi](https://github.com/was
 npm install kandi-tools
 ```
 
-## Quick start in kandi
+## Quick start
 
 ```js
-import { createSVG, addLayer, addPolyline } from "kandi-tools/svg";
+import { writeFileSync } from "node:fs";
+import { poissonDisk } from "kandi-tools/geometry";
+import { createPRNG } from "kandi-tools/random";
+import { createSVG, addLayer, addCircle, svgToString } from "kandi-tools/svg";
 
-// kandi stuff vvvvvvvvvvvv
-// Standard sketch settings:
-export const settings = {
-    dimensions: "A4",
-    dpi: 300,
-    units: "mm",
-    animate: false,
-    clear: false,
-};
+const { random } = createPRNG(42);
+const svg = createSVG({ width: 210, height: 297, units: "mm" });
+const layer = addLayer(svg, "dots");
 
-export const exportSettings = {};
+for (const p of poissonDisk(210, 297, 8, 30, random))
+    addCircle(layer, p.x, p.y, 1.5);
 
-const sketch = ({ width, height, units, dpi }) => {
-    const svgDoc = createSVG({ width, height, units });
-    const layer = addLayer(svgDoc, "1-layer");
-    const upperLeftCorner = {
-        x: width / 2 - width / 10,
-        y: height / 2 - height / 10,
-    };
-    const rectWidth = width / 5;
-    const rectHeight = height / 5;
-    return ({ context, width, height, time }) => {
-        // Browser visualization - drawing a rectangle in the middle of the page
-        // In kandi: CTRL + S to save a PNG
-        context.strokStyle = "black";
-        context.strokeRect(
-            upperLeftCorner.x,
-            upperLeftCorner.y,
-            rectWidth,
-            rectHeight,
-        );
-        // Doing the same for the actual SVG output
-        // In kandi: CTRL + E to save a SVG
-        addPolyline(layer, [
-            { x: upperLeftCorner.x, y: upperLeftCorner.y },
-            { x: upperLeftCorner.x + rectWidth, y: upperLeftCorner.y },
-            {
-                x: upperLeftCorner.x + rectWidth,
-                y: upperLeftCorner.y + rectHeight,
-            },
-            {
-                x: upperLeftCorner.x,
-                y: upperLeftCorner.y + rectHeight,
-            },
-        ]);
-
-        return { svgDocs: [{ svgDoc }] };
-    };
-};
-
-export default sketch;
+writeFileSync("dots.svg", svgToString(svg));
 ```
 
 ## Modules
@@ -86,9 +46,9 @@ export default sketch;
 
 ## Conventions
 
-- Points are { x, y } objects - **tip**: use destructuring when possible
+- Points are `{ x , y }` objects - **tip**: use destructuring when possible
 - Angles in radians
-- Anything random takes an optional `random` function: pass createPRNG(seed).random for reproducible output
+- Anything random takes an optional `random` function: pass `createPRNG(seed).random` for reproducible output
 - Units: whatever you put in; svg maps them to the provided `units` string during export
 
 ## Known limitations
@@ -97,10 +57,10 @@ export default sketch;
 
 ## Related
 
-kandi-tools is created as a toolbox specifically for [kandi](https://github.com/wassilyevich/kandi): the CLI tool to scaffold sketches and have a dev-server for live tweaking.
-[My website](www.wassi.art)
-[My Instagram](https://www.instagram.com/wassi.lyevich/)
-[My Substack](https://wassilyevich.substack.com/)
+- kandi-tools is created as a toolbox specifically for [kandi](https://github.com/wassilyevich/kandi): the CLI tool to scaffold sketches and have a dev-server for live tweaking.
+- [My website](https://wassi.art)
+- [My Instagram](https://www.instagram.com/wassi.lyevich/)
+- [My Substack](https://wassilyevich.substack.com/)
 
 ## License
 
