@@ -10,7 +10,7 @@ import { isInsidePolygon } from "./polygons.js";
  * @param{number} height - height of the rectangle to spawn points in
  * @param{number} minDist - minimum distance to spawn a new point with respect to the current point
  * @param{number} [maxAttempts=30] - maximum number of attempts to try and generate a new point
- * @param{Function} random - a callback function called as random() that generates random values between [0-1]
+ * @param{Function} [random = Math.random] - a callback function called as random() that generates random values between [0-1]
  * @param{Point2} [origin={x:0, y:0}] - optional origin parameter for correct offsetting
  * @returns{Array<Point2>} array of the generated points
  */
@@ -19,7 +19,7 @@ export function poissonDisk(
     height,
     minDist,
     maxAttempts = 30,
-    random,
+    random = Math.random,
     origin = { x: 0, y: 0 },
 ) {
     const cellSize = minDist / Math.sqrt(2);
@@ -89,10 +89,15 @@ export function poissonDisk(
  * @param{Array<Point2>} polygon - polygon to spawn points in
  * @param{number} minDist - minimum distance to spawn a new point with respect to the current point
  * @param{number} [maxAttempts=30] - maximum number of attempts to try and generate a new point
- * @param{Function} random - a callback function called as random() that generates random values between [0-1]
+ * @param{Function} [random = Math.random] - a callback function called as random() that generates random values between [0-1]
  * @returns{Array<Point2>} array of the generated points
  */
-export function poissonDiskPolygon(polygon, minDist, maxAttempts, random) {
+export function poissonDiskPolygon(
+    polygon,
+    minDist,
+    maxAttempts = 30,
+    random = Math.random,
+) {
     const xs = polygon.map((p) => p.x);
     const ys = polygon.map((p) => p.y);
     const minX = Math.min(...xs),

@@ -46,7 +46,7 @@ writeFileSync("dots.svg", svgToString(svg));
 
 ## Conventions
 
-- Points are `{ x , y }` objects - **tip**: use destructuring when possible
+- Points are `{ x , y }` objects, and are referred to as `Point2` - **tip**: use destructuring when possible
 - Angles in radians
 - Anything random takes an optional `random` function: pass `createPRNG(seed).random` for reproducible output
 - Units: whatever you put in; svg maps them to the provided `units` string during export
