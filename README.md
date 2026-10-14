@@ -34,15 +34,15 @@ writeFileSync("dots.svg", svgToString(svg));
 
 ## Modules
 
-| Module     | What it's for                                | Docs                                                                       |
-| ---------- | -------------------------------------------- | -------------------------------------------------------------------------- |
-| `geometry` | Generating and manipulation geometric stuff  | [geometry](https://github.com/wassilyevich/kandi-tools/tree/main/geometry) |
-| `math`     | General purpose math stuff                   | [math](https://github.com/wassilyevich/kandi-tools/tree/main/math)         |
-| `random`   | Seedable Pseudo-Random stuff                 | [random](https://github.com/wassilyevich/kandi-tools/tree/main/random)     |
-| `color`    | Analyzing and converting color               | [color](https://github.com/wassilyevich/kandi-tools/tree/main/color)       |
-| `svg`      | Creating plottable SVG files                 | [svg](https://github.com/wassilyevich/kandi-tools/tree/main/svg)           |
-| `analysis` | Data/point analysis algorithms               | [analysis](https://github.com/wassilyevich/kandi-tools/tree/main/analysis) |
-| `images`   | Image import and analysis (**browser only**) | [images](https://github.com/wassilyevich/kandi-tools/tree/main/images)     |
+| Module     | What it's for                                                         | Docs                                                                       |
+| ---------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `geometry` | Generating and manipulating points, curves, and polygons              | [geometry](https://github.com/wassilyevich/kandi-tools/tree/main/geometry) |
+| `math`     | Often used mathematical formulations/functions not included in `Math` | [math](https://github.com/wassilyevich/kandi-tools/tree/main/math)         |
+| `random`   | Seedable random functions inclusing noise and pick                    | [random](https://github.com/wassilyevich/kandi-tools/tree/main/random)     |
+| `color`    | Analyzing and converting color                                        | [color](https://github.com/wassilyevich/kandi-tools/tree/main/color)       |
+| `svg`      | Creating plottable SVG files                                          | [svg](https://github.com/wassilyevich/kandi-tools/tree/main/svg)           |
+| `analysis` | Analyzing data/points - _more complex_ algorithms                     | [analysis](https://github.com/wassilyevich/kandi-tools/tree/main/analysis) |
+| `images`   | Image import and analysis (**browser only**)                          | [images](https://github.com/wassilyevich/kandi-tools/tree/main/images)     |
 
 ## Conventions
 

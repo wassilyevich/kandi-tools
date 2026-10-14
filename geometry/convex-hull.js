@@ -5,10 +5,10 @@
 /**
  * Finds the convex hull of a set of 2D points using a specified algorithm.
  * @param {Array<{x: number, y: number}>} points - Input points
- * @param {string} algorithm - Algorithm to use ('graham')
+ * @param {string} [algorithm="graham"] - Algorithm to use ('graham')
  * @returns {{ hull: Array<{x: number, y: number}>, algorithm: string, inputCount: number, hullCount: number }}
  */
-export function convexHull(points, algorithm) {
+export function convexHull(points, algorithm = "graham") {
     if (algorithm === "graham") {
         const convexHullPoints = grahamScan(points);
         return {
